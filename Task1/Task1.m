@@ -10,8 +10,16 @@ lambda = 0.1; % Parametro di regolarizzazione
 % Generazione della matrice di osservazione C ~ N(0,1)
 C = randn(q, n); 
 
-nu_ista = 0.99 / norm([C, eye(q)], 2)^2; % Fattore di aggiornamento ISTA
-nu_ijam = 0.7; % Fattore di aggiornamento IJAM
+%VERSIONE 1
+%nu_ista = 0.99 / norm([C, eye(q)], 2)^2; % Fattore di aggiornamento ISTA
+%VERSIONE 2
+nu_ista = 1 / norm(C'*C, 2); % Stabilizza il passo di aggiornamento
+
+%VERSIONE 1 DAI DATI
+%nu_ijam = 0.7; % Fattore di aggiornamento IJAM
+%VERSIONE 2
+nu_ijam = 1 / norm(C'*C, 2);
+
 
 % Generazione del vettore stato x̃
 x_true = 2 + rand(n,1); % Genera valori tra [2,3]
@@ -45,27 +53,49 @@ function [x, a, state_errors] = ISTA(C, y, lambda, nu, max_iter, tol, x_true)
 
         x_old = x; % Salva la stima precedente di x per valutare la convergenza
 
+        %VERSIONE 1
         % Aggiornamento di x con un passo di gradiente
-        x = x_old - nu * C' * (C*x_old + a - y);
+        %x = x_old - nu * C' * (C*x_old + a - y);
 
-        
+        %VERSIONE 2
+        x = x - nu * C' * (C*x + a - y);
+
+        %VERSIONE1
         % Soft-thresholding su a per promuovere la sparsità (attacchi limitati)
-        a = sign(a - nu * (C*x_old - y)) .* max(abs(a - nu * (C*x_old - y)) - lambda * nu, 0);
-
-
-        % Calcolo errore relativo in questa iterazione
-        state_errors(k) = norm(x - x_true) / norm(x_true);
+        %a = sign(a - nu * (C*x_old - y)) .* max(abs(a - nu * (C*x_old - y)) - lambda * nu, 0);
         
-        % Controllo della convergenza: se x non cambia significativamente, fermiamo l'algoritmo
-        if norm(x - x_old, 2) < tol
-            disp("stop ISTA")
+        %VERSIONE 2
+        a = sign(a - nu * (C*x - y)) .* max(abs(a - nu * (C*x - y)) - lambda * nu, 0);
 
+        % Controllo della stabilità numerica
+        if any(isnan(x)) || any(isinf(x))
+            warning('Divergenza in ISTA');
+            break;
+        end
+
+        %VERSIONE1
+        % Calcolo errore relativo in questa iterazione
+        %state_errors(k) = norm(x - x_true) / norm(x_true);
+
+        %VERSIONE2
+        state_errors(k) = norm(x - x_true) / (norm(x_true) + 1e-8);
+
+        %VERSIONE 1
+        % Controllo della convergenza: se x non cambia significativamente, fermiamo l'algoritmo
+        %if norm(x - x_old, 2) < tol
+        %    disp("stop ISTA")
+
+        %    break;
+        %end
+
+        %VERSIONE 2
+        % Controllo della convergenza: se x non cambia significativamente, fermiamo l'algoritmo
+        if norm(x - x_old, 2) < tol && k > 50 % Almeno 50 iterazioni prima di fermarsi
+            disp("stop ISTA")
             break;
         end
         
     end
-
-
 
 end
 
@@ -78,7 +108,17 @@ function [x, a, state_errors] = IJAM(C, y, lambda, nu, max_iter, tol, x_true)
     x = zeros(n,1);
     a = zeros(q,1);  
     
-    C_pinv = pinv(C);  % Calcola la pseudo-inversa di C per il calcolo diretto di x
+    %VERSIONE 1
+    %C_pinv = pinv(C);  % Calcola la pseudo-inversa di C per il calcolo diretto di x
+    
+    %VERSIONE 2, psuedo inverse regolarizzata
+    %C_pinv = pinv(C, 1e-6); 
+    %C_pinv = (C' * C + 1e-6 * eye(n)) \ C'; 
+
+    %VERSIONE 3
+    C_pinv = pinv(C, 1e-3);
+
+
 
     state_errors = zeros(max_iter, 1); % Preallocazione
 
@@ -88,17 +128,51 @@ function [x, a, state_errors] = IJAM(C, y, lambda, nu, max_iter, tol, x_true)
         x_old = x; % Salva la stima precedente di x per valutare la convergenza
 
         % Aggiornamento alternato di x e a
-        x = C_pinv * (y - a); % Risolve direttamente x con la pseudo-inversa di C
+        x = C_pinv * (y - a); % Risolvf direttamente x con la pseudo-inversa di C
 
-        a = sign(a - nu * (C*x_old- y)) .* max(abs(a - nu * (C*x_old - y)) - lambda * nu, 0); % Soft-thresholding su a
+        %VERSIONE1
+        %a = sign(a - nu * (C*x_old- y)) .* max(abs(a - nu * (C*x_old - y)) - lambda * nu, 0); % Soft-thresholding su a
         
-        state_errors(k) = norm(x - x_true) / norm(x_true);
+        %VERSIONE2
+         % Aggiornamento stabile di a
+        a = sign(a - nu * (C*x - y)) .* max(abs(a - nu * (C*x - y)) - lambda * nu, 0);
+        
+        
+        % Controllo della stabilità numerica
+        if any(isnan(x)) || any(isinf(x))
+            warning('Divergenza in IJAM: x è NaN o inf');
+            break;
+        end
+        if any(isnan(a)) || any(isinf(a))
+            warning('Divergenza in IJAM: a è NaN o inf');
+            break;
+        end
 
+        %VERSIONE1
+        %state_errors(k) = norm(x - x_true) / norm(x_true);
+
+        %VERSIONE2
+        state_errors(k) = norm(x - x_true) / (norm(x_true) + 1e-8);
+
+        %VERSIONE 1
         % Controllo della convergenza: se x non cambia significativamente, fermiamo l'algoritmo
-        if norm(x - x_old, 2) < tol
+        %if norm(x - x_old, 2) < tol
+        %    disp("stop Ijam")
+        %    break;
+        %end
+
+        %VERSIONE 2
+        % Controllo della convergenza: se x non cambia significativamente, fermiamo l'algoritmo
+        if norm(x - x_old, 2) < tol && k > 50
             disp("stop Ijam")
             break;
         end
+
+    end
+
+    % Filtro sulle soluzioni non valide
+    if state_errors(end) > 10^3
+        warning('Soluzione non valida, errore troppo alto!');
     end
 
 end
@@ -192,37 +266,3 @@ title('Convergenza ISTA vs IJAM');
 legend('ISTA', 'IJAM');
 grid on;
 
-
-
-
-
-%-------------------------------------------------------- VECCHIO IVAN%
-
-%{
-
-
-% Eseguire ISTA per stimare x e a
-[x_ista, a_ista] = ISTA(C, y, lambda, nu_ista, max_iter, tol, num_runs);
-
-% Eseguire IJAM per stimare x e a
-[x_ijam, a_ijam] = IJAM(C, y, lambda, nu_ijam, max_iter, tol, num_runs);
-
-% Calcolo dell'errore di stima dello stato per ISTA
-state_error_ista = norm(x_ista - x_true) / norm(x_true);
-
-% Calcolo dell'errore di stima dello stato per IJAM
-state_error_ijam = norm(x_ijam - x_true) / norm(x_true);
-
-% Calcolo dell'errore di supporto dell'attacco per ISTA
-support_error_ista = sum(abs((a_ista ~= 0) - (a_true ~= 0))) / q;
-
-% Calcolo dell'errore di supporto dell'attacco per IJAM
-support_error_ijam = sum(abs((a_ijam ~= 0) - (a_true ~= 0))) / q;
-
-% Visualizzazione dei risultati
-disp(['Errore ISTA: ', num2str(state_error_ista)]);
-disp(['Support Error ISTA: ', num2str(support_error_ista)]);
-disp(['Errore IJAM: ', num2str(state_error_ijam)]);
-disp(['Support Error IJAM: ', num2str(support_error_ijam)]);
-
-%}
