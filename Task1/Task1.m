@@ -56,10 +56,19 @@ for run = 1:num_runs
     attack_errors_ijam_all(:, run) = ae_ijam;
 end
 
+% Calcolo degli errori medi finali (ultima iterazione)
+state_error_ista = mean(state_errors_ista_all(end, :)); 
+state_error_ijam = mean(state_errors_ijam_all(end, :));
+
+support_error_ista = mean(attack_errors_ista_all(end, :)); 
+support_error_ijam = mean(attack_errors_ijam_all(end, :));
+
+
 disp(['Errore ISTA: ', num2str(state_error_ista)]);
 disp(['Support Error ISTA: ', num2str(support_error_ista)]);
 disp(['Errore IJAM: ', num2str(state_error_ijam)]);
 disp(['Support Error IJAM: ', num2str(support_error_ijam)]);
+
 
 state_errors_ista_mean = mean(state_errors_ista_all, 2, 'omitnan');
 attack_errors_ista_mean = mean(attack_errors_ista_all, 2, 'omitnan');
