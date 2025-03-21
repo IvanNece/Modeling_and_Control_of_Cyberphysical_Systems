@@ -84,6 +84,8 @@ title('State Estimation Error');
 legend('ISTA', 'IJAM');
 grid on;
 
+saveas(gcf, 'Plot_base/StateError_base.png');
+
 figure;
 loglog(1:max_iter, attack_errors_ista_mean, 'b', 'LineWidth', 2); hold on;
 loglog(1:max_iter, attack_errors_ijam_mean, 'r', 'LineWidth', 2);
@@ -92,4 +94,7 @@ ylabel('Mean Support Attack Error');
 title('Support Attack Error');
 legend('ISTA', 'IJAM');
 grid on;
+
+saveas(gcf, 'Plot_base/SupportError_base.png');
+
 
