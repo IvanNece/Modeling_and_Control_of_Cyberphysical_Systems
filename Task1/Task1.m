@@ -18,7 +18,9 @@ a_sum_ista = zeros(q,1);
 x_sum_ijam = zeros(n,1);
 a_sum_ijam = zeros(q,1);
 state_errors_ista_all = zeros(max_iter, num_runs);
+attack_errors_ista_all = zeros(max_iter, num_runs);
 state_errors_ijam_all = zeros(max_iter, num_runs);
+attack_errors_ijam_all = zeros(max_iter, num_runs);
 
 for run = 1:num_runs
     % Rigenerazione della matrice di osservazione C ~ N(0,1)
@@ -45,47 +47,40 @@ for run = 1:num_runs
     nu_ista = 1 / norm(G, 2)^2;
     nu_ijam = 0.7;
     
-    [x_ista, a_ista, state_errors_ista] = ISTA(C, y, lambda, nu_ista, max_iter, tol, x_true);
-    [x_ijam, a_ijam, state_errors_ijam] = IJAM(C, y, lambda, nu_ijam, max_iter, tol, x_true);
-    
-    x_sum_ista = x_sum_ista + x_ista;
-    a_sum_ista = a_sum_ista + a_ista;
-    x_sum_ijam = x_sum_ijam + x_ijam;
-    a_sum_ijam = a_sum_ijam + a_ijam;
-    
-    state_errors_ista_all(:, run) = state_errors_ista;
-    state_errors_ijam_all(:, run) = state_errors_ijam;
+    [x_ista, a_ista, se_ista, ae_ista] = ISTA(C, y, lambda, nu_ista, max_iter, tol, x_true, a_true);
+    [x_ijam, a_ijam, se_ijam, ae_ijam] = IJAM(C, y, lambda, nu_ijam, max_iter, tol, x_true, a_true);
+
+    state_errors_ista_all(:, run) = se_ista;
+    attack_errors_ista_all(:, run) = ae_ista;
+    state_errors_ijam_all(:, run) = se_ijam;
+    attack_errors_ijam_all(:, run) = ae_ijam;
 end
 
-% Calcolo delle stime medie
-x_mean_ista = x_sum_ista / num_runs;
-a_mean_ista = a_sum_ista / num_runs;
-x_mean_ijam = x_sum_ijam / num_runs;
-a_mean_ijam = a_sum_ijam / num_runs;
-
-% Calcolo errori finali
-state_error_ista = norm(x_mean_ista - x_true) / norm(x_true);
-state_error_ijam = norm(x_mean_ijam - x_true) / norm(x_true);
-support_error_ista = sum(abs((a_mean_ista ~= 0) - (a_true ~= 0))) / q;
-support_error_ijam = sum(abs((a_mean_ijam ~= 0) - (a_true ~= 0))) / q;
-
-% Visualizzazione risultati
 disp(['Errore ISTA: ', num2str(state_error_ista)]);
 disp(['Support Error ISTA: ', num2str(support_error_ista)]);
 disp(['Errore IJAM: ', num2str(state_error_ijam)]);
 disp(['Support Error IJAM: ', num2str(support_error_ijam)]);
 
-% PLOT
 state_errors_ista_mean = mean(state_errors_ista_all, 2, 'omitnan');
+attack_errors_ista_mean = mean(attack_errors_ista_all, 2, 'omitnan');
 state_errors_ijam_mean = mean(state_errors_ijam_all, 2, 'omitnan');
+attack_errors_ijam_mean = mean(attack_errors_ijam_all, 2, 'omitnan');
 
 figure;
-semilogy(1:max_iter, state_errors_ista_mean, 'b', 'LineWidth', 2);
-hold on;
-semilogy(1:max_iter, state_errors_ijam_mean, 'r', 'LineWidth', 2);
-hold off;
-xlabel('Numero di Iterazioni');
-ylabel('Errore di Stato Relativo');
-title('Convergenza ISTA vs IJAM');
+loglog(1:max_iter, state_errors_ista_mean, 'b', 'LineWidth', 2); hold on;
+loglog(1:max_iter, state_errors_ijam_mean, 'r', 'LineWidth', 2);
+xlabel('Iterations (log scale)');
+ylabel('Mean Squared State Error');
+title('State Estimation Error');
 legend('ISTA', 'IJAM');
 grid on;
+
+figure;
+loglog(1:max_iter, attack_errors_ista_mean, 'b', 'LineWidth', 2); hold on;
+loglog(1:max_iter, attack_errors_ijam_mean, 'r', 'LineWidth', 2);
+xlabel('Iterations (log scale)');
+ylabel('Mean Support Attack Error');
+title('Support Attack Error');
+legend('ISTA', 'IJAM');
+grid on;
+
