@@ -20,82 +20,86 @@ nu_DSSO = 0.7; % Given in problem statement
 
 % Simulation parameters
 Tmax = 10000;           
-x_hat_SSO = zeros(n, Tmax);
-a_hat_SSO = zeros(q, Tmax);
-x_SSO = zeros(n, Tmax);
-x_hat_DSSO = zeros(n, Tmax);
-a_hat_DSSO = zeros(q, Tmax);
-x_DSSO = zeros(n, Tmax);
+x_hat_SSO = x0;
+a_hat_SSO = zeros(q, 1);  % CORRETTO: inizializzare come vettore
+x_SSO = x0;
+x_hat_DSSO = x0;
+a_hat_DSSO = zeros(q, 1); % CORRETTO: inizializzare come vettore
+x_DSSO = x0;
 
-% Initialize state
-x_hat_SSO(:,1) = x0;
-x_hat_DSSO(:,1) = x0;
-x_SSO(:,1) = x0;
-x_DSSO(:,1) = x0;
+% Preallocazione vettori di errore
+state_error_SSO = zeros(1, Tmax);
+state_error_DSSO = zeros(1, Tmax);
+attack_error_SSO = zeros(1, Tmax);
+attack_error_DSSO = zeros(1, Tmax);
 
 % Compute observer gain L for D-SSO (A-LC should be stable)
 eig_target = 0.5 * ones(n,1); % Desired eigenvalues for stability
 L = place(A', C', eig_target)';
 
 % Iterate over time
-for k = 1:Tmax-1
+for k = 1:Tmax
 
     % Osservazioni reali per entrambi i metodi
-    y_SSO = C * x_SSO(:, k) + a;
-    y_DSSO = C * x_DSSO(:, k) + a;
+    y_SSO = C * x_SSO + a;
+    y_DSSO = C * x_DSSO + a;
 
     % Predictions
-    y_hat_SSO = C * x_hat_SSO(:, k) + a_hat_SSO(:, k);
-    y_hat_DSSO = C * x_hat_DSSO(:, k) + a_hat_DSSO(:, k);
+    y_hat_SSO = C * x_hat_SSO + a_hat_SSO;
+    y_hat_DSSO = C * x_hat_DSSO + a_hat_DSSO;
     
     % SSO update
-    x_hat_SSO(:, k+1) = A * x_hat_SSO(:, k) - nu_SSO * A * C' * (y_hat_SSO - y_SSO);
-    a_hat_SSO(:, k+1) = soft_threshold(a_hat_SSO(:, k) - nu_SSO * (y_hat_SSO - y_SSO), nu_SSO * lambda);
-    x_SSO(:, k+1) = A * x_SSO(:, k);
+    x_hat_SSO = A * x_hat_SSO - nu_SSO * A * C' * (y_hat_SSO - y_SSO);
+    a_hat_SSO = soft_threshold(a_hat_SSO - nu_SSO * (y_hat_SSO - y_SSO), nu_SSO * lambda);
+    x_SSO = A * x_SSO;
 
     % D-SSO update
-    x_hat_DSSO(:, k+1) = A * x_hat_DSSO(:, k) - L * (y_hat_DSSO - y_DSSO);
-    a_hat_DSSO(:, k+1) = soft_threshold(a_hat_DSSO(:, k) - nu_DSSO * (y_hat_DSSO - y_DSSO), nu_DSSO * lambda);
-    x_DSSO(:, k+1) = A * x_DSSO(:, k);
+    x_hat_DSSO = A * x_hat_DSSO - L * (y_hat_DSSO - y_DSSO);
+    a_hat_DSSO = soft_threshold(a_hat_DSSO - nu_DSSO * (y_hat_DSSO - y_DSSO), nu_DSSO * lambda);
+    x_DSSO = A * x_DSSO;
 
+    % CORRETTO: Ora x_hat viene confrontato con x_SSO e x_DSSO (non x0!)
+    state_error_SSO(k) = norm(x_hat_SSO - x_SSO, 2) / norm(x_SSO, 2);
+    state_error_DSSO(k) = norm(x_hat_DSSO - x_DSSO, 2) / norm(x_DSSO, 2);
+
+    % CORRETTO: confronto tra a e a_hat per errore di supporto
+    attack_error_SSO(k) = sum(xor(a ~= 0, a_hat_SSO ~= 0));
+    attack_error_DSSO(k) = sum(xor(a ~= 0, a_hat_DSSO ~= 0));
 end
 
-% Compute metrics
-state_error_SSO = vecnorm(x_hat_SSO - x0, 2, 1) ./ vecnorm(x0, 2, 1);
-state_error_DSSO = vecnorm(x_hat_DSSO - x0, 2, 1) ./ vecnorm(x0, 2, 1);
-attack_error_SSO = sum(abs((a ~= 0) - (a_hat_SSO ~= 0)), 1);
-attack_error_DSSO = sum(abs((a ~= 0) - (a_hat_DSSO ~= 0)), 1);
- 
-%Compute mean errors across iterations
-state_error_SSO_mean = mean(state_error_SSO, 'omitnan');
-state_error_DSSO_mean = mean(state_error_DSSO, 'omitnan');
-attack_error_SSO_mean = mean(attack_error_SSO, 'omitnan');
-attack_error_DSSO_mean = mean(attack_error_DSSO, 'omitnan');
+% Evita log(0) sostituendo gli zeri con eps
+state_error_SSO(state_error_SSO == 0) = eps;
+state_error_DSSO(state_error_DSSO == 0) = eps;
+attack_error_SSO(attack_error_SSO == 0) = eps;
+attack_error_DSSO(attack_error_DSSO == 0) = eps;
 
-% Plot State Estimation Error on log-log scale
+% --- PLOT State Estimation Error ---
 figure;
-loglog(1:Tmax, state_error_SSO, 'r', 'LineWidth', 2); hold on;
-loglog(1:Tmax, state_error_DSSO, 'b', 'LineWidth', 2);
-xlabel('Time (log scale)');
-ylabel('State Estimation Error (log scale)');
-title('State Estimation Error');
-legend('SSO', 'D-SSO');
+loglog(1:Tmax, state_error_SSO, 'b', 'LineWidth', 2); hold on;
+loglog(1:Tmax, state_error_DSSO, 'r', 'LineWidth', 2);
+set(gca, 'XScale', 'log', 'YScale', 'log'); % Scala logaritmica su entrambi gli assi
+xlabel('Iterations', 'FontSize', 12, 'FontWeight', 'bold');
+ylabel('Relative error', 'FontSize', 12, 'FontWeight', 'bold');
+title('State estimation error', 'FontSize', 14, 'FontWeight', 'bold');
 grid on;
+legend({'SSO', 'D-SSO'}, 'FontSize', 12, 'Location', 'northeast');
 saveas(gcf, 'StateError.png');
 
-% Plot Attack Support Error on log-log scale
+% --- PLOT Attack Support Error ---
 figure;
-loglog(1:Tmax, attack_error_SSO, 'r', 'LineWidth', 2); hold on;
-loglog(1:Tmax, attack_error_DSSO, 'b', 'LineWidth', 2);
-xlabel('Time (log scale)');
-ylabel('Support Attack Error (log scale)');
-title('Attack Support Error');
-legend('SSO', 'D-SSO');
+loglog(1:Tmax, attack_error_SSO, 'b', 'LineWidth', 2); hold on;
+loglog(1:Tmax, attack_error_DSSO, 'r', 'LineWidth', 2);
+set(gca, 'XScale', 'log', 'YScale', 'linear'); % Log solo su X, lineare su Y ✅
+xlabel('Iterations', 'FontSize', 12, 'FontWeight', 'bold');
+ylabel('Support Attack Error', 'FontSize', 12, 'FontWeight', 'bold');
+title('Attack Support Error', 'FontSize', 14, 'FontWeight', 'bold');
 grid on;
+legend({'SSO', 'D-SSO'}, 'FontSize', 12, 'Location', 'northeast');
 saveas(gcf, 'SupportError.png');
 
 disp('Simulation complete. Results plotted.');
 
+% Funzione di soglia soft
 function s = soft_threshold(v, threshold)
     s = sign(v) .* max(abs(v) - threshold, 0);
 end
