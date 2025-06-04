@@ -11,16 +11,15 @@ topos = generate_topology();
 selected = 'ring';
 L = topos.(selected){1};
 G = topos.(selected){2};
-adj = topos.(selected){3};
+A_adj = topos.(selected){3};
 
 % Mostra cosa stai usando
 fprintf("→ Topologia selezionata: %s\n", selected);
 disp("Laplaciano L:"); disp(L);
 disp("Pinning G:"); disp(G);
-disp("Matrice di adiacenza (adj):"); disp(adj);
+disp("Adiacenza A_adj:"); disp(A_adj);
 
-
-%% === DESIGN DEL CONTROLLORE ===
+%% === DESIGN DEL CONTROLLATORE ===
 % Scelta matrici Q e R per l'LQR
 Q = eye(2);      % penalizza posizione e velocità
 R = 1;           % penalizza sforzo di controllo
