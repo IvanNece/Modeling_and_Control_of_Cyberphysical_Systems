@@ -40,14 +40,14 @@ disp("Matrice di guadagno F:"); disp(F);
 
 %% === SIMULAZIONE LEADER ===
 ref_type = 'constant';   % 'constant' | 'ramp' | 'sine'
-T = 10;              % durata simulazione
-dt = 0.01;           % passo integrazione
+T = 10;
+dt = 0.01;
 
 [x0_hist, u0_hist, t] = simulate_leader(A, B, C, ref_type, T, dt);
 
-% Plot esempio (debug)
+% Plot posizione del leader
 figure;
 plot(t, x0_hist(1,:), 'LineWidth', 1.5);
 title(['Leader - Posizione (riferimento: ', ref_type, ')']);
-xlabel('Tempo [s]'); ylabel('Posizione');
+xlabel('Tempo [s]'); ylabel('Posizione [m]');
 grid on;
