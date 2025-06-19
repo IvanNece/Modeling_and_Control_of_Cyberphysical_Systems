@@ -8,9 +8,9 @@ sigma = 1e-2; % Deviazione standard del rumore
 lambda = 0.1; % Parametro di regolarizzazione
 
 % Parametri di test
-max_iter = 3000;
+max_iter = 1e4;
 num_runs = 20;
-tol = 1e-10;
+tol = 0;
 
 % ESECUZIONE MULTIPLA DEGLI ALGORITMI
 x_sum_ista = zeros(n,1);
@@ -76,25 +76,26 @@ state_errors_ijam_mean = mean(state_errors_ijam_all, 2, 'omitnan');
 attack_errors_ijam_mean = mean(attack_errors_ijam_all, 2, 'omitnan');
 
 figure;
-loglog(1:max_iter, state_errors_ista_mean, 'b', 'LineWidth', 2); hold on;
-loglog(1:max_iter, state_errors_ijam_mean, 'r', 'LineWidth', 2);
+semilogx(1:max_iter, state_errors_ista_mean, 'b', 'LineWidth', 1); hold on;
+semilogx(1:max_iter, state_errors_ijam_mean, 'r', 'LineWidth', 1);
 xlabel('Iterations (log scale)');
 ylabel('Mean Squared State Error');
 title('State Estimation Error');
 legend('ISTA', 'IJAM');
 grid on;
 
-saveas(gcf, 'Plot_base/StateError_base.png');
+saveas(gcf, 'NewPlots/Plot_base/StateError_base.png');
 
+% === PLOT SUPPORT ERROR (x log, y lineare) ===
 figure;
-loglog(1:max_iter, attack_errors_ista_mean, 'b', 'LineWidth', 2); hold on;
-loglog(1:max_iter, attack_errors_ijam_mean, 'r', 'LineWidth', 2);
+semilogx(1:max_iter, attack_errors_ista_mean, 'b', 'LineWidth', 1); hold on;
+semilogx(1:max_iter, attack_errors_ijam_mean, 'r', 'LineWidth', 1);
 xlabel('Iterations (log scale)');
 ylabel('Mean Support Attack Error');
 title('Support Attack Error');
 legend('ISTA', 'IJAM');
 grid on;
 
-saveas(gcf, 'Plot_base/SupportError_base.png');
+saveas(gcf, 'NewPlots/Plot_base/SupportError_base.png');
 
 

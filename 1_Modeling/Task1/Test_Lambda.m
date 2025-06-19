@@ -1,13 +1,17 @@
-
-%% TASK 1 - ANALISI VARIABILE LAMBDA
+%% TASK 1 - ANALISI VARIAZIONE DI LAMBDA
 
 % Parametri del problema
 n = 15; q = 30; h = 2; sigma = 1e-2;
 nu_ijam = 0.7;
-max_iter = 3000; num_runs = 20; tol = 1e-10;
+max_iter = 1e4; num_runs = 20; tol = 0;
 
-% Valori di lambda da testare
+% Vettore dei lambda da testare
 lambda_values = [0.01, 0.1, 1, 10];
+
+% Creazione cartella se non esiste
+if ~exist('NewPlots/Plot_lambda', 'dir')
+    mkdir('NewPlots/Plot_lambda');
+end
 
 for lv = 1:length(lambda_values)
     lambda = lambda_values(lv);
@@ -19,7 +23,7 @@ for lv = 1:length(lambda_values)
     attack_errors_ijam_all = zeros(max_iter, num_runs);
 
     for run = 1:num_runs
-        % Generazione dei dati
+        % Generazione dati random
         C = randn(q, n);
         x_true = 2 + rand(n,1);
         negative_indices = rand(n,1) > 0.5;
@@ -42,37 +46,35 @@ for lv = 1:length(lambda_values)
         attack_errors_ijam_all(:, run) = ae_ijam;
     end
 
-    % Calcolo delle medie
+    % Calcolo medie
     state_errors_ista_mean = mean(state_errors_ista_all, 2, 'omitnan');
     attack_errors_ista_mean = mean(attack_errors_ista_all, 2, 'omitnan');
     state_errors_ijam_mean = mean(state_errors_ijam_all, 2, 'omitnan');
     attack_errors_ijam_mean = mean(attack_errors_ijam_all, 2, 'omitnan');
 
-    % PLOT errori di stato
+    % === PLOT STATE ESTIMATION ERROR (x log, y lineare)
     figure;
-    loglog(1:max_iter, state_errors_ista_mean, 'b', 'LineWidth', 2); hold on;
-    loglog(1:max_iter, state_errors_ijam_mean, 'r', 'LineWidth', 2);
+    semilogx(1:max_iter, state_errors_ista_mean, 'b', 'LineWidth', 1); hold on;
+    semilogx(1:max_iter, state_errors_ijam_mean, 'r', 'LineWidth', 1);
     xlabel('Iterations (log scale)');
     ylabel('Mean Squared State Error');
-    title(['State Error - \lambda = ', num2str(lambda)]);
+    title(['State Estimation Error - \lambda = ', num2str(lambda)]);
     legend('ISTA', 'IJAM');
     grid on;
 
-    filename = sprintf('Plot_lambda/StateError_lambda_%.2f.png', lambda);
+    filename = sprintf('NewPlots/Plot_lambda/StateError_lambda_%.2f.png', lambda);
     saveas(gcf, filename);
 
-
-    % PLOT errori di supporto
+    % === PLOT SUPPORT ERROR (x log, y lineare)
     figure;
-    loglog(1:max_iter, attack_errors_ista_mean, 'b', 'LineWidth', 2); hold on;
-    loglog(1:max_iter, attack_errors_ijam_mean, 'r', 'LineWidth', 2);
+    semilogx(1:max_iter, attack_errors_ista_mean, 'b', 'LineWidth', 1); hold on;
+    semilogx(1:max_iter, attack_errors_ijam_mean, 'r', 'LineWidth', 1);
     xlabel('Iterations (log scale)');
     ylabel('Mean Support Attack Error');
-    title(['Support Error - \lambda = ', num2str(lambda)]);
+    title(['Support Attack Error - \lambda = ', num2str(lambda)]);
     legend('ISTA', 'IJAM');
     grid on;
-    
-    filename = sprintf('Plot_lambda/SupportError_lambda_%.2f.png', lambda);
-    saveas(gcf, filename);
 
+    filename = sprintf('NewPlots/Plot_lambda/SupportError_lambda_%.2f.png', lambda);
+    saveas(gcf, filename);
 end

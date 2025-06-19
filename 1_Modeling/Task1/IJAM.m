@@ -17,11 +17,10 @@ function [x, a, state_errors, attack_errors] = IJAM(C, y, lambda, nu, max_iter, 
         end
 
         state_errors(k) = norm(x - x_true) / (norm(x_true) + 1e-8);
-        attack_errors(k) = sum(abs((a ~= 0) - (a_true ~= 0))) / q;
 
-        % if norm(x - x_old, 2) < tol && k > 100
-        %     %disp("Convergenza IJAM");
-        %     break;
-        % end
+        % Support attack error (somma delle differenze tra supporti, senza normalizzazione)
+        support_true = double(a_true ~= 0);
+        support_est  = double(a ~= 0);
+        attack_errors(k) = sum(abs(support_true - support_est));
     end
 end
