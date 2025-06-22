@@ -18,11 +18,36 @@ tol = 1e-6; % Tolleranza per la convergenza
 
 [x, a] = ISTAtarget(G, y, lambda, nu, max_iter);
 
-% 5. Estrarre i risultati
-[~, target_location] = max(abs(x));  % Cella con il valore massimo di x
-attacked_sensors = find(abs(a) > 1e-3); % Supporto di a (sensori attaccati)
+figure;
+stem(1:length(x), abs(x), 'filled', 'LineWidth', 1);
+hold on;
+[~, idx_max] = max(abs(x));
+stem(idx_max, abs(x(idx_max)), 'r', 'filled', 'LineWidth', 2); % massimo in rosso
+xlabel('Cella');
+ylabel('x');
+title('Estimated Target Location');
+legend('Estimated values', 'Maximum (target)');
+grid on;
+saveas(gcf, fullfile('Plots', 'Estimated_Target_Location.png'));
 
-% 6. Visualizzare i risultati
+% === GRAFICO 2: Sensori attaccati stimati ===
+figure;
+stem(1:length(a), abs(a), 'filled', 'LineWidth', 1);
+hold on;
+threshold = 1e-3;
+highlighted = find(abs(a) > threshold);
+stem(highlighted, abs(a(highlighted)), 'r', 'filled', 'LineWidth', 2); % valori sopra soglia
+xlabel('Sensor Index');
+ylabel('a');
+title('Estimated Attack Vector');
+legend('Estimated values', 'Detected attacks');
+grid on;
+saveas(gcf, fullfile('Plots', 'Estimated_Attack_Vector.png'));
+
+% === Stampa dei risultati ===
+[~, target_location] = max(abs(x));  % Cella con il valore massimo di x
+attacked_sensors = find(abs(a) > threshold); % Supporto di a (sensori attaccati)
+
 disp('Posizione stimata del target:');
 disp(target_location);
 

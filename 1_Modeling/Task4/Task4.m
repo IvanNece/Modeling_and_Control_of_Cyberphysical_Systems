@@ -18,7 +18,7 @@ lambda = 10;
 x_hat = x0;
 a_hat = zeros(q, 1);
 
-% Matrice normalizzata
+% Matrice normalizzata per ISTA
 G = [D eye(q)];
 G = (G - mean(G))./std(G);
 nu = 1 / (norm(G, 2)^2);
@@ -27,66 +27,63 @@ nu = 1 / (norm(G, 2)^2);
 attack_support_error = zeros(1, Tmax);
 state_support_error = zeros(1, Tmax);
 
+%% === ANALISI OSSERVABILITÀ SISTEMA AUMENTATO ===
+
+A_aug = blkdiag(A, eye(q));  % Matrice dinamica aumentata (51x51)
+G_noNorm = [D eye(q)];       % Matrice G non normalizzata
+O = [];
+
+for i = 0:(n+q-1)
+    O = [O; G_noNorm * (A_aug^i)];
+end
+
+rank_O = rank(O);
+fprintf('Rank of augmented observability matrix: %d (expected max: %d)\n', rank_O, n + q);
 
 %% === LOOP DI TRACKING ===
 
 for k = 1:Tmax
-    % === PREDIZIONE STATO CON LA DINAMICA ===
-    % Usiamo la stima corrente dello stato per prevedere lo stato al tempo k+1
-    % secondo la dinamica x(k+1) = A * x(k)
+    % Predizione stato
     x_pred = A * x_hat;
 
-    % === OTTENIMENTO DELLA MISURA CORRENTE ===
-    % Misura ricevuta dai sensori al tempo k
+    % Misura corrente
     y_k = Y(:,k);
 
-    % === COSTRUZIONE DELLA STIMA COMBINATA PRIMA DELLA CORREZIONE ===
-    % Combiniamo la predizione dello stato con la stima corrente degli attacchi
-    % Questo è il punto di partenza prima della correzione con la misura
+    % Stima congiunta stato-attacco
     z = [x_pred; a_hat];
 
-    % === CORREZIONE VIA ISTA ===
-    % Primo passo: gradiente del residuo tra previsione e misura
+    % Correzione ISTA
     z = z - nu * G' * (G * z - y_k);
-
-    % Secondo passo: soglia soft per forzare la sparsità su stato e attacchi
     z = soft_threshold(z, nu * lambda);
 
-    % === ESTRAZIONE DELLE STIME CORRETTE ===
-    % Aggiorniamo lo stato stimato (x_hat) e l'attacco stimato (a_hat)
-    % Queste verranno usate per la predizione successiva
+    % Aggiornamento stime
     x_hat = z(1:n);
     a_hat = z(n+1:end);
 
-    % === VALUTAZIONE ERRORI DI SUPPORTO ===
+    % Calcolo supporto stimato (stato)
     epsilon = 1;
-
-    % Stima approssimata del supporto vero dello stato (target in cella massima)
     x_true_sparse = zeros(n,1);
     x_true_sparse(find(x_hat == max(x_hat))) = 1;
 
-    % Confronto tra attacchi veri e stimati (supporto)
+    % Errori di supporto
     attack_support_error(k) = sum(xor(abs(a_true) >= epsilon, abs(a_hat) >= epsilon));
-
-    % Confronto tra supporto stimato dello stato e quello approssimato
     state_support_error(k) = sum(abs((abs(x_hat) >= epsilon) - (abs(x_true_sparse) >= epsilon)));
 end
 
-
 %% === PLOT E SALVATAGGIO ===
 
-% Plot errore supporto stato
+% Stato
 figure;
-plot(1:Tmax, state_support_error, 'b', 'LineWidth', 2);
+plot(1:Tmax, state_support_error, 'b', 'LineWidth', 1.5);
 xlabel('Time step', 'FontSize', 12, 'FontWeight', 'bold');
 ylabel('Support State Error', 'FontSize', 12, 'FontWeight', 'bold');
 title('Support State Error over Time', 'FontSize', 14, 'FontWeight', 'bold');
 grid on;
 saveas(gcf, 'SupportStateError_Task4.png');
 
-% Plot errore supporto attacco
+% Attacco
 figure;
-plot(1:Tmax, attack_support_error, 'r', 'LineWidth', 2);
+plot(1:Tmax, attack_support_error, 'r', 'LineWidth', 1.5);
 xlabel('Time step', 'FontSize', 12, 'FontWeight', 'bold');
 ylabel('Support Attack Error', 'FontSize', 12, 'FontWeight', 'bold');
 title('Support Attack Error over Time', 'FontSize', 14, 'FontWeight', 'bold');

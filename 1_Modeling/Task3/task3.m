@@ -75,8 +75,8 @@ attack_error_DSSO(attack_error_DSSO == 0) = eps;
 
 % --- PLOT State Estimation Error ---
 figure;
-loglog(1:Tmax, state_error_SSO, 'b', 'LineWidth', 2); hold on;
-loglog(1:Tmax, state_error_DSSO, 'r', 'LineWidth', 2);
+loglog(1:Tmax, state_error_SSO, 'b', 'LineWidth', 1.5); hold on;
+loglog(1:Tmax, state_error_DSSO, 'r', 'LineWidth', 1.5);
 set(gca, 'XScale', 'log', 'YScale', 'log'); % Scala logaritmica su entrambi gli assi
 xlabel('Iterations', 'FontSize', 12, 'FontWeight', 'bold');
 ylabel('Relative error', 'FontSize', 12, 'FontWeight', 'bold');
@@ -87,12 +87,12 @@ saveas(gcf, 'StateError.png');
 
 % --- PLOT Attack Support Error ---
 figure;
-loglog(1:Tmax, attack_error_SSO, 'b', 'LineWidth', 2); hold on;
-loglog(1:Tmax, attack_error_DSSO, 'r', 'LineWidth', 2);
-set(gca, 'XScale', 'log', 'YScale', 'linear'); % Log solo su X, lineare su Y ✅
+loglog(1:Tmax, attack_error_SSO, 'b', 'LineWidth', 1.5); hold on;
+loglog(1:Tmax, attack_error_DSSO, 'r', 'LineWidth', 1.5);
+set(gca, 'XScale', 'log', 'YScale', 'linear'); % Log solo su X, lineare su Y 
 xlabel('Iterations', 'FontSize', 12, 'FontWeight', 'bold');
 ylabel('Support Attack Error', 'FontSize', 12, 'FontWeight', 'bold');
-title('Attack Support Error', 'FontSize', 14, 'FontWeight', 'bold');
+title('Support Attack Error', 'FontSize', 14, 'FontWeight', 'bold');
 grid on;
 legend({'SSO', 'D-SSO'}, 'FontSize', 12, 'Location', 'northeast');
 saveas(gcf, 'SupportError.png');
