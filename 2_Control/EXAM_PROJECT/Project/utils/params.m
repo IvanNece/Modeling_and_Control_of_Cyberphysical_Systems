@@ -9,7 +9,7 @@ function p = params()
     
     % Parametri di Lyapunov per l'osservatore
     p.Q = eye(2);  % Matrizzazione di ponderazione (stato)
-    p.R = 100;     % Matrizzazione di ponderazione (ingresso) come un numero scalare, come nel codice del tuo amico
+    p.R = 1;     % Matrizzazione di ponderazione (ingresso) come un numero scalare, come nel codice del tuo amico
     
     % Matrice di pinning (S1 è il leader)
     p.G = zeros(p.N);
@@ -20,7 +20,7 @@ function p = params()
     p.time_step = 0.1;  % Passo temporale (in secondi)
     
     % Parametri per la topologia
-    p.topology_type = 'mesh';  % Scegliere la topologia (es. 'line', 'ring', 'mesh', 'full')
+    p.topology_type = 'line';  % Scegliere la topologia (es. 'line', 'ring', 'mesh', 'full')
     
     % Tipo di riferimento per il leader
     p.scelta_riferimento = 'step';  % Scegli il riferimento per il leader ('step', 'ramp', 'sin')

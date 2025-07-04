@@ -30,27 +30,33 @@ function topos = generate_topology()
                 end
 
             case 'ring'
-                % Ring topology: S1 ← S2 ← ... ← S6 ← S1
+                % Ring topology: S1 ↔ S2 ↔ ... ↔ S6 ↔ S1 (simmetrica)
                 for i = 1:N-1
-                    adj(i+1, i) = 1; % Ogni nodo è connesso al precedente
+                    adj(i, i+1) = 1;   % Connessione i → i+1
+                    adj(i+1, i) = 1;   % Connessione i+1 → i (simmetrica)
                 end
-                adj(1, N) = 1; % Aggiungo la connessione S6 → S1 (circuito)
+                % Chiudo l'anello: S6 ↔ S1
+                adj(N, 1) = 1;         % Connessione S6 → S1
+                adj(1, N) = 1;         % Connessione S1 → S6 (simmetrica)
 
             case 'mesh'
-                % Mesh topology: Connessioni sparso tra i nodi
+                % Mesh topology: Pattern fisso e semplice
                 adj = zeros(N);
+                
+                % Ring base
                 for i = 1:N-1
-                    adj(i+1, i) = 1; % Ogni nodo è connesso al precedente
+                    adj(i, i+1) = 1;
+                    adj(i+1, i) = 1;
                 end
-                % Aggiungi connessioni casuali per ottenere una topologia a mesh
-                for i = 1:N
-                    for j = i+2:N
-                        if rand > 0.5
-                            adj(i, j) = 1;
-                            adj(j, i) = 1;
-                        end
-                    end
-                end
+                adj(N, 1) = 1; adj(1, N) = 1;
+                
+                % Connessioni diagonali fisse
+                adj(1, 3) = 1; adj(3, 1) = 1;  % 1-3
+                adj(2, 4) = 1; adj(4, 2) = 1;  % 2-4
+                adj(3, 5) = 1; adj(5, 3) = 1;  % 3-5
+                adj(4, 6) = 1; adj(6, 4) = 1;  % 4-6
+                adj(1, 4) = 1; adj(4, 1) = 1;  % 1-4
+                adj(2, 5) = 1; adj(5, 2) = 1;  % 2-5
 
             case 'full'
                 % Full topology: Tutti connessi a tutti (senza self-loop)

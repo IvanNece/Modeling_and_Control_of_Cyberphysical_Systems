@@ -2,6 +2,10 @@ close all;
 clear all;
 clc;
 
+addpath("control\")
+addpath("topologies\")
+addpath("utils\")
+
 %% Carica i parametri del progetto
 p = params();  % Carica i parametri dal file params.m
 
@@ -57,6 +61,6 @@ C0 = [C; eye(2)];
 D0 = zeros(3, 1);
 
 %% Calcolo dei guadagni e degli osservatori
-[K, c, F, L1, Aa_obv, Ba_obv, Ca_obv, Da_obv] = control(A, B, C, K0, L, G, p);
+[K, c, F, L1, A0_obv, B0_obv, C0_obv, D0_obv, Aa_obv, Ba_obv, Ca_obv, Da_obv] = control(A, B, C, K0, L, G, p);
 
 
