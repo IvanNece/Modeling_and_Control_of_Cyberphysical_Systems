@@ -6,6 +6,16 @@ addpath("control\")
 addpath("topologies\")
 addpath("utils\")
 
+%% ========== CONFIGURAZIONE RUMORE ==========
+
+agent_noise_variance = 0;      % Varianza del rumore per gli agenti
+leader_noise_variance = 2;     % Varianza del rumore per il leader
+num_agents = 6;                  % Numero di agenti nel sistema
+
+for i = 0:num_agents
+    assignin('base', sprintf('agent_%d', i), i);
+end
+
 %% Carica i parametri del progetto
 p = params();  % Carica i parametri dal file params.m
 
