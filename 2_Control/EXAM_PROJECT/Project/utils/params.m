@@ -5,7 +5,7 @@ function p = params()
     p.N = 6;  % numero di follower (6 in totale)
     
     % Parametri per il controllore
-    p.c = 5;  % Guadagno di accoppiamento (c)
+    p.c = 0.5;  % Guadagno di accoppiamento (c)
     
     % Parametri di Lyapunov per l'osservatore
     p.Q = eye(2);  % Matrizzazione di ponderazione (stato)

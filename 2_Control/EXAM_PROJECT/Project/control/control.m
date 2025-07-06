@@ -16,8 +16,15 @@ function [K, c, F, L1, A0_obv, B0_obv, C0_obv, D0_obv, Aa_obv, Ba_obv, Ca_obv, D
     real_parts = real(lambda);
     min_real = min(real_parts(real_parts > 0)); % Trova il minimo autovalore positivo
     c_minimum = 1 / (2 * min_real); % Valore minimo per c
-    c = c_minimum;
     
+    c = p.c;  % ← Cambia questa riga
+    
+    % Debug info (opzionale)
+    fprintf('c_minimum teorico: %.4f\n', c_minimum);
+    fprintf('c utilizzato: %.4f\n', c);
+    if c < c_minimum
+        fprintf('ATTENZIONE: c < c_minimum, possibili problemi di stabilità\n');
+    end    
     %% Progettazione di F (Guadagno per osservatore)
     Q_obs = 10 * eye(2); % Matrizzazione per l'osservatore (diversa da Q per controllo)
     R_obs = 1; % Matrizzazione per l'osservatore
