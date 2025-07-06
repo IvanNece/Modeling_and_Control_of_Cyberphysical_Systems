@@ -21,8 +21,8 @@ The project is developed for the **Part II CPS course project** and focuses on:
 │ ├── control.m # Main control logic for the maglev system
 │
 ├── /simulation # Contains Simulink files and simulation models
-│ ├── Maglev_sim_1.slx # Simulink model for the maglev system
-│ ├── Maglev_sim_2.slx # Another Simulink model for variations
+│ ├── Local.slx // Simulink model for local observer control
+│ ├── Neighborhood.slx // Simulink model for neighborhood observer control
 │
 ├── /utils # General utilities for the project
 │ ├── plot_results.m # Script to plot the results from simulations
