@@ -1,46 +1,45 @@
 function topos = generate_topology()
-% GENERATE_TOPOLOGY genera 4 topologie standard tra follower:
+% GENERATE_TOPOLOGY generates 4 standard follower topologies:
 % - 'line': S1 ← S2 ← S3 ← S4 ← S5 ← S6
-% - 'ring': come 'line' ma con S6 → S1 (topologia circolare)
-% - 'mesh': connessi in modo sparso ma non completamente
-% - 'full': tutti connessi a tutti (senza self-loop)
+% - 'ring': like 'line' but with S6 → S1 (circular topology)
+% - 'mesh': sparse connections, not fully connected
+% - 'full': fully connected network (no self-loops)
 %
 % Output:
-%   topos - struttura con 4 campi: .line, .ring, .mesh, .full
-%           ognuno contiene una cella {L, G, adj}:
-%           - L: matrice del Laplaciano
-%           - G: matrice di pinning (S1 è il leader)
-%           - adj: matrice di adiacenza
+%   topos - structure with 4 fields: .line, .ring, .mesh, .full
+%           each containing a cell array {L, G, adj}:
+%           - L: Laplacian matrix
+%           - G: pinning matrix (S1 is the leader)
+%           - adj: adjacency matrix
 
-    % Definisco i tipi di topologie che voglio generare
-    tipi = {'line', 'ring', 'mesh', 'full'};
-    N = 6; % Numero di follower
-    topos = struct(); % Inizializzo la struttura di output
+    types = {'line', 'ring', 'mesh', 'full'};  % List of topology types
+    N = 6;  % Number of follower agents
+    topos = struct();  % Initialize output structure
 
-    for k = 1:length(tipi)
-        type = tipi{k}; % Tipo di topologia
-        adj = zeros(N);  % Inizializzo la matrice di adiacenza a zero
+    for k = 1:length(types)
+        type = types{k};          % Current topology type
+        adj = zeros(N);           % Initialize adjacency matrix
 
-        % --- Costruzione della matrice di adiacenza ---
+        % --- Build adjacency matrix ---
         switch type
             case 'line'
                 % Line topology: S1 ← S2 ← S3 ← ... ← S6
                 for i = 1:N-1
-                    adj(i+1, i) = 1; % Ogni nodo è connesso al precedente
+                    adj(i+1, i) = 1;  % Each agent connects to its predecessor
                 end
 
             case 'ring'
-                % Ring topology: S1 ↔ S2 ↔ ... ↔ S6 ↔ S1 (simmetrica)
+                % Ring topology: S1 ↔ S2 ↔ ... ↔ S6 ↔ S1
                 for i = 1:N-1
-                    adj(i, i+1) = 1;   % Connessione i → i+1
-                    adj(i+1, i) = 1;   % Connessione i+1 → i (simmetrica)
+                    adj(i, i+1) = 1;   % Connection i → i+1
+                    adj(i+1, i) = 1;   % Connection i+1 → i
                 end
-                % Chiudo l'anello: S6 ↔ S1
-                adj(N, 1) = 1;         % Connessione S6 → S1
-                adj(1, N) = 1;         % Connessione S1 → S6 (simmetrica)
+                % Close the ring
+                adj(N, 1) = 1;         
+                adj(1, N) = 1;
 
             case 'mesh'
-                % Mesh topology: Pattern fisso e semplice
+                % Sparse mesh topology with additional diagonal connections
                 adj = zeros(N);
                 
                 % Ring base
@@ -50,28 +49,28 @@ function topos = generate_topology()
                 end
                 adj(N, 1) = 1; adj(1, N) = 1;
                 
-                % Connessioni diagonali fisse
-                adj(1, 3) = 1; adj(3, 1) = 1;  % 1-3
-                adj(2, 4) = 1; adj(4, 2) = 1;  % 2-4
-                adj(3, 5) = 1; adj(5, 3) = 1;  % 3-5
-                adj(4, 6) = 1; adj(6, 4) = 1;  % 4-6
-                adj(1, 4) = 1; adj(4, 1) = 1;  % 1-4
-                adj(2, 5) = 1; adj(5, 2) = 1;  % 2-5
+                % Additional cross-links
+                adj(1, 3) = 1; adj(3, 1) = 1;
+                adj(2, 4) = 1; adj(4, 2) = 1;
+                adj(3, 5) = 1; adj(5, 3) = 1;
+                adj(4, 6) = 1; adj(6, 4) = 1;
+                adj(1, 4) = 1; adj(4, 1) = 1;
+                adj(2, 5) = 1; adj(5, 2) = 1;
 
             case 'full'
-                % Full topology: Tutti connessi a tutti (senza self-loop)
-                adj = ones(N) - eye(N); % Ogni nodo è connesso a tutti tranne che a se stesso
+                % Fully connected topology (no self-loops)
+                adj = ones(N) - eye(N);  % All-to-all connectivity
         end
 
-        % --- Calcolo del Laplaciano: L = D - adj ---
-        D = diag(sum(adj, 2)); % La matrice diagonale dei gradi (somme delle righe)
-        L = D - adj; % Laplaciano: D - adj
+        % --- Compute Laplacian matrix: L = D - adj ---
+        D = diag(sum(adj, 2));  % Degree matrix (row sums)
+        L = D - adj;            % Laplacian matrix
 
-        % --- Costruzione della matrice di Pinning: Leader è S1 ---
-        G = zeros(N); % Inizializzo la matrice di pinning
-        G(1, 1) = 1; % S1 è il leader, quindi G(1, 1) = 1
+        % --- Define pinning matrix: S1 is the leader ---
+        G = zeros(N);       
+        G(1, 1) = 1;  % Only agent 1 (S1) is pinned to the leader
 
-        % --- Salvataggio della topologia nella struttura topos ---
-        topos.(type) = {L, G, adj}; % Aggiungo L, G e adj per ogni tipo di topologia
+        % --- Store topology matrices in output structure ---
+        topos.(type) = {L, G, adj};  % Save L, G, adj for this topology
     end
 end

@@ -6,78 +6,79 @@ addpath("control\")
 addpath("topologies\")
 addpath("utils\")
 
-%% Carica i parametri del progetto
-p = params();  % Carica i parametri dal file params.m
+%% Load project parameters
+p = params();  % Load system parameters from params.m
 
-%% Configurazione rumore (dal file params.m)
-noise_ts = p.time_step;  % Passo temporale
+%% Noise configuration (from params.m)
+noise_ts = p.time_step;  % Discrete sample time for noise blocks
 
 assignin('base', 'leader_noise_ts', noise_ts);
 assignin('base', 'noise_sensitivity', p.noise_sensitivity);
 
+% Export individual noise sensitivity for each agent
 for i = 1:p.N
     assignin('base', sprintf('agent_noise_sensitivity_%d', i), p.agent_noise_sensitivity_vector(i));
 end
 
-%% Assegnazione id agenti
-num_agents = 6;                  % Numero di agenti nel sistema
+%% Assign agent IDs to workspace
+num_agents = 6;  % Number of agents in the network
 
 for i = 0:num_agents
     assignin('base', sprintf('agent_%d', i), i);
 end
 
-%% Scegli la Topologia (usiamo la topologia come stringa, non come numero)
-topology = p.topology_type;  % Usa la topologia definita in params.m (stringa: 'line', 'ring', 'mesh', 'full')
+%% Select network topology (defined as string in params.m)
+topology = p.topology_type;  % Options: 'line', 'ring', 'mesh', 'full'
 
-% Genera la topologia con il file che hai creato
+% Generate network topology from predefined script
 topos = generate_topology();
 switch topology
     case 'line'
-        topology_data = topos.line;    % Topologia lineare
+        topology_data = topos.line;       % Line topology
     case 'ring'
-        topology_data = topos.ring;    % Topologia ad anello
+        topology_data = topos.ring;       % Ring topology
     case 'mesh'
-        topology_data = topos.mesh;    % Topologia mesh
+        topology_data = topos.mesh;       % Mesh topology
     case 'full'
-        topology_data = topos.full;    % Topologia completamente connessa
+        topology_data = topos.full;       % Fully connected topology
     otherwise
-        error('Topologia non valida! Scegli tra: ''line'', ''ring'', ''mesh'', ''full''.');
+        error('Invalid topology. Choose from: ''line'', ''ring'', ''mesh'', ''full''.');
 end
 
-L = topology_data{1}; % Matrice del Laplaciano
-G = topology_data{2}; % Matrice di pinning (Leader è S1)
-adj = topology_data{3}; % Matrice di adiacenza
+L = topology_data{1};    % Laplacian matrix
+G = topology_data{2};    % Pinning matrix (Leader is S1)
+adj = topology_data{3};  % Adjacency matrix
 
-%% Dinamica del sistema (Maglev)
-A = [0, 1; 880.87, 0];  % Matrice di stato
-B = [0; -9.9453];       % Matrice di ingresso
-C = [708.27 0];         % Matrice di uscita
-D = 0;                  % Matrice di uscita per il controllo (spesso zero)
+%% System dynamics (Magnetic Levitation model)
+A = [0, 1; 880.87, 0];     % State matrix
+B = [0; -9.9453];          % Input matrix
+C = [708.27 0];            % Output matrix
+D = 0;                     % Feedthrough matrix (usually zero)
 
-%% Controllo del sistema e progettazione dei guadagni
-scelta = p.scelta_riferimento; % Scegli il riferimento per il leader ('step', 'ramp', 'sin')
+%% Control gain design and leader reference configuration
+scelta = p.scelta_riferimento;  % Leader reference type: 'step', 'ramp', 'sin'
 
 switch lower(scelta)
     case 'step'
         eigs = [0, -1]; 
-        K0 = place(A, B, eigs);  % Progettazione di K0 per riferimento step
+        K0 = place(A, B, eigs);  % Gain K0 for step reference
     case 'ramp'
         eigs = [0, 0];
-        K0 = acker(A, B, eigs);  % Progettazione di K0 per riferimento ramp
+        K0 = acker(A, B, eigs);  % Gain K0 for ramp reference
     case 'sin'
         eigs = [+j, -j];
-        K0 = place(A, B, eigs);  % Progettazione di K0 per riferimento sinusoidale
+        K0 = place(A, B, eigs);  % Gain K0 for sinusoidal reference
     otherwise
-        error('Riferimento non valido! Scegli tra: step, ramp, sin.');
+        error('Invalid reference. Choose from: step, ramp, sin.');
 end
 
-% Matrici del leader (per Simulink o per la simulazione)
+% Leader system matrices 
 A0 = A;
 B0 = B;
 C0 = [C; eye(2)];
 D0 = zeros(3, 1);
 
-%% Calcolo dei guadagni e degli osservatori
+%% Compute control and observer gains
 [K, c, F, L1, A0_obv, B0_obv, C0_obv, D0_obv, Aa_obv, Ba_obv, Ca_obv, Da_obv] = control(A, B, C, K0, L, G, p);
 
 
