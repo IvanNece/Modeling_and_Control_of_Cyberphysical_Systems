@@ -1,31 +1,73 @@
 # Distributed Control of Multi-Agent Magnetic Levitation Systems
 
-This repository contains a modular MATLAB implementation of a distributed control system for a multi-agent network of magnetic levitation (maglev) systems.
+This repository implements a modular and extensible MATLAB & Simulink framework for **distributed control** of a network of magnetic levitation (Maglev) systems, based on the course project of *Modeling and Control of Cyber-Physical Systems* (Part II).
 
-The project is developed for the **Part II CPS course project** and focuses on:
+The project focuses on:
 
-- Cooperative tracking of a leader by multiple follower agents
-- Comparison between **local** and **neighborhood** observers
-- Simulation of different network topologies
-- Analysis of performance under varying parameters and noise
+- Distributed cooperative tracking of a reference leader  
+- Design and comparison of **Local** vs **Neighborhood** observers  
+- Simulation under different **network topologies**  
+- Analysis of robustness with **output measurement noise**  
+- Evaluation of system performance 
 
 ---
 
 ## 📁 Project Structure
 /Maglev_Project
 │
-├── /topologies # Contains scripts for generating and managing network topologies
-│ ├── generate_topology.m # Script to generate network topologies
-│ 
-├── /control # Contains the files for the distributed control logic
-│ ├── control.m # Main control logic for the maglev system
+├── /topologies
+│ └── generate_topology.m # Generates line, ring, mesh, full topologies
 │
-├── /simulation # Contains Simulink files and simulation models
-│ ├── Local.slx // Simulink model for local observer control
-│ ├── Neighborhood.slx // Simulink model for neighborhood observer control
+├── /control
+│ └── control.m # Designs K, F, L1, observers (LQR + Riccati)
 │
-├── /utils # General utilities for the project
-│ ├── plot_results.m # Script to plot the results from simulations
-│ ├── params.m # General project parameters
+├── /simulation
+│ ├── Local.slx # Simulink model with local observers
+│ └── Neighborhood.slx # Simulink model with cooperative observers
 │
-├── main.m # Entry point for the project
+├── /utils
+│ └── params.m # General project parameters (N, Q, R, etc.)
+│
+├── main.m # Main script: topology + simulation config
+
+
+---
+
+## 🛠️ How to Use
+
+1. Open `params.m`, configure parameters:
+   - Topology (`p.topology_type`)
+   - Reference type (`p.scelta_riferimento`)
+   - Noise parameters (`noise_sensitivity`, `agent_noise_sensitivity_vector`)
+2. Run `main.m`
+3. Open either `Local.slx` or `Neighborhood.slx`
+4. Simulate and observe results
+
+---
+
+## ⚙️ How It Works
+
+### Simulink Models
+- `Local.slx`: each agent uses a **local observer** based on its output  
+- `Neighborhood.slx`: each agent uses a **cooperative observer** using neighbors’ outputs  
+
+### Observer Design
+- LQR controller `K` computed using `care`  
+- Observer gains `F` and `L1` computed using `place` or dual LQR  
+- Agents implement a distributed estimator using topology-defined interactions  
+
+### Topologies
+Four types of topologies define neighbor relations:
+- `'line'`: directed chain  
+- `'ring'`: circular symmetric  
+- `'mesh'`: sparse connections  
+- `'full'`: complete graph  
+
+Topology is selected via `params.m → p.topology_type`.
+
+### Noise Configuration
+Simulations can be run with or without noise:
+- **Leader noise**: Gaussian noise added to leader output (`η₀`)  
+- **Agent noise**: Individually configurable per agent (vector of sensitivities)  
+
+

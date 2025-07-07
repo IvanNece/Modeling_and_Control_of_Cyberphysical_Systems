@@ -9,22 +9,15 @@ addpath("utils\")
 %% Carica i parametri del progetto
 p = params();  % Carica i parametri dal file params.m
 
-%% Configurazione rumore
+%% Configurazione rumore (dal file params.m)
+noise_ts = p.time_step;  % Passo temporale
 
-leader_noise_ts = p.time_step;      % Passo temporale per i blocchi discreti (come il rumore)
-noise_sensitivity = 0.1; 
-% Esporta le variabili nel workspace di Simulink
-assignin('base', 'leader_noise_ts', leader_noise_ts);
-assignin('base', 'noise_sensitivity', noise_sensitivity);
+assignin('base', 'leader_noise_ts', noise_ts);
+assignin('base', 'noise_sensitivity', p.noise_sensitivity);
 
-% Sensibilità individuale del rumore per ogni agente (dimensione N)
-agent_noise_sensitivity_vector = [0.1 0 0.1 0 0 0.2];  
-% Esporta ogni valore come 'agent_noise_sensitivity_i'
-for i = 1:6
-    assignin('base', sprintf('agent_noise_sensitivity_%d', i), agent_noise_sensitivity_vector(i));
+for i = 1:p.N
+    assignin('base', sprintf('agent_noise_sensitivity_%d', i), p.agent_noise_sensitivity_vector(i));
 end
-
-
 
 %% Assegnazione id agenti
 num_agents = 6;                  % Numero di agenti nel sistema

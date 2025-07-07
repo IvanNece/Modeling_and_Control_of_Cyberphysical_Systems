@@ -24,4 +24,9 @@ function p = params()
     
     % Tipo di riferimento per il leader
     p.scelta_riferimento = 'step';  % Scegli il riferimento per il leader ('step', 'ramp', 'sin')
+
+    % Parametri per il rumore
+    p.noise_sensitivity = 0.1;  % Sensibilità globale per il leader
+    p.agent_noise_sensitivity_vector = [0.1 0 0.1 0 0 0.2];  % Per ogni agente
+
 end
