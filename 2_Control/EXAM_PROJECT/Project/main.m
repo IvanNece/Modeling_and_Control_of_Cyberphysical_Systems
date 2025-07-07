@@ -6,18 +6,29 @@ addpath("control\")
 addpath("topologies\")
 addpath("utils\")
 
+%% Carica i parametri del progetto
+p = params();  % Carica i parametri dal file params.m
+
 %% Configurazione rumore
 
-agent_noise_variance = 0;      % Varianza del rumore per gli agenti
-leader_noise_variance = 0.5;     % Varianza del rumore per il leader
+leader_noise_ts = p.time_step;      % Passo temporale per i blocchi discreti (come il rumore)
+noise_sensitivity = 0.1;
+
+agent_noise_sensitivity = 0.1;  
+
+% Esporta le variabili nel workspace di Simulink
+assignin('base', 'leader_noise_ts', leader_noise_ts);
+assignin('base', 'noise_sensitivity', noise_sensitivity);
+
+assignin('base', 'agent_noise_sensitivity', agent_noise_sensitivity);
+
+
+%% Assegnazione id agenti
 num_agents = 6;                  % Numero di agenti nel sistema
 
 for i = 0:num_agents
     assignin('base', sprintf('agent_%d', i), i);
 end
-
-%% Carica i parametri del progetto
-p = params();  % Carica i parametri dal file params.m
 
 %% Scegli la Topologia (usiamo la topologia come stringa, non come numero)
 topology = p.topology_type;  % Usa la topologia definita in params.m (stringa: 'line', 'ring', 'mesh', 'full')
