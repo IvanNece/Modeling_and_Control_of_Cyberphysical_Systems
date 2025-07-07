@@ -12,15 +12,18 @@ p = params();  % Carica i parametri dal file params.m
 %% Configurazione rumore
 
 leader_noise_ts = p.time_step;      % Passo temporale per i blocchi discreti (come il rumore)
-noise_sensitivity = 0.1;
-
-agent_noise_sensitivity = 0.1;  
-
+noise_sensitivity = 0.1; 
 % Esporta le variabili nel workspace di Simulink
 assignin('base', 'leader_noise_ts', leader_noise_ts);
 assignin('base', 'noise_sensitivity', noise_sensitivity);
 
-assignin('base', 'agent_noise_sensitivity', agent_noise_sensitivity);
+% Sensibilità individuale del rumore per ogni agente (dimensione N)
+agent_noise_sensitivity_vector = [0.1 0 0.1 0 0 0.2];  % esempio: solo agenti 1,3,6 hanno rumore
+% Esporta ogni valore come 'agent_noise_sensitivity_i'
+for i = 1:6
+    assignin('base', sprintf('agent_noise_sensitivity_%d', i), agent_noise_sensitivity_vector(i));
+end
+
 
 
 %% Assegnazione id agenti
