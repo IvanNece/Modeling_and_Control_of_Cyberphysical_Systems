@@ -6,10 +6,10 @@ addpath("control\")
 addpath("topologies\")
 addpath("utils\")
 
-%% ========== CONFIGURAZIONE RUMORE ==========
+%% Configurazione rumore
 
 agent_noise_variance = 0;      % Varianza del rumore per gli agenti
-leader_noise_variance = 2;     % Varianza del rumore per il leader
+leader_noise_variance = 0.5;     % Varianza del rumore per il leader
 num_agents = 6;                  % Numero di agenti nel sistema
 
 for i = 0:num_agents
