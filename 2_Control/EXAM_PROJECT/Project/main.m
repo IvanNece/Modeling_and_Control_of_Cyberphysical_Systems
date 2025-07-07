@@ -18,7 +18,7 @@ assignin('base', 'leader_noise_ts', leader_noise_ts);
 assignin('base', 'noise_sensitivity', noise_sensitivity);
 
 % Sensibilità individuale del rumore per ogni agente (dimensione N)
-agent_noise_sensitivity_vector = [0.1 0 0.1 0 0 0.2];  % esempio: solo agenti 1,3,6 hanno rumore
+agent_noise_sensitivity_vector = [0.1 0 0.1 0 0 0.2];  
 % Esporta ogni valore come 'agent_noise_sensitivity_i'
 for i = 1:6
     assignin('base', sprintf('agent_noise_sensitivity_%d', i), agent_noise_sensitivity_vector(i));
