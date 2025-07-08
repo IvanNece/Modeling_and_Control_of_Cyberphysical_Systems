@@ -1,6 +1,20 @@
-Local Line:
+Local Line Step:
 c = minimum to converge line = 0.5
 R = 1
 Q = I
+
+0_ERRORI 0.5 SU TUTTI GLI AGENTI:
+energy: 3.506e+07
+0.1_ANALISI SUL FULL VS LINE CON RUMORE SU TUTTI I NODI TRANNE IL LEADER:
+c=3.4271
+
+1_ANALISI SUL LINE:
+c=0.5
+
+2_ANALISI SUL RING:
+c=4.5964 => costo maggiore energia
+
+3_ANALISI SUL FULL:
+c=3.4271
 
 
