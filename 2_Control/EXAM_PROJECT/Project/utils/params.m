@@ -9,7 +9,7 @@ function p = params(topology_name)
     p.N = 6;  % Total number of followers (6 agents)
 
     % Controller parameters
-    p.c = 4.5965;  % Coupling gain for distributed control
+    p.c = 0.5;  % Coupling gain for distributed control
 
     % Lyapunov observer design parameters
     p.Q = eye(2);  % State weighting matrix
