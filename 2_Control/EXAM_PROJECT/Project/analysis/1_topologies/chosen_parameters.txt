@@ -1,0 +1,7 @@
+Local Step:
+c = minimum to converge (line = 0.5, Ring = 4.5964, mesh= 3.5593, full= 3.4271)
+R = 1
+Q = I
+
+
+----confronto errori tra tipologie c =  4.5964 piu alto
