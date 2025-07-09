@@ -3,6 +3,8 @@ Ivan Necerini & Jacopo Rialti
 
 This repository contains the complete project for the course *Modeling and Control of Cyber-Physical Systems* at Politecnico di Torino, Academic Year 2024/2025.
 
+# To explore the implementations, refer to the specific README files inside each part's subfolder.
+
 ## Overview
 
 The project is divided into two main parts:
@@ -34,6 +36,6 @@ Each configuration is evaluated through position/velocity tracking, disagreement
 ## Reproducibility
 
 All simulations were carried out in MATLAB and Simulink.  
-# To explore the implementations, refer to the specific README files inside each part's subfolder.
+
 
 
