@@ -13,35 +13,44 @@ The project focuses on:
 ---
 
 ## 📁 Project Structure
-/Maglev_Project
+Maglev_Project/
 │
-├── /topologies
-│ └── generate_topology.m # Generates line, ring, mesh, full topologies
+├── main.m # Main script: system configuration and controller setup
 │
-├── /control
-│ └── control.m # Designs K, F, L1, observers (LQR + Riccati)
+├── /control/
+│ └── control.m # LQR gain computation, observer design (F, L1), coupling gain check
 │
-├── /simulation
-│ ├── Local.slx # Simulink model with local observers
-│ └── Neighborhood.slx # Simulink model with cooperative observers
+├── /topologies/
+│ └── generate_topology.m # Adjacency, Laplacian and pinning matrix generation for:
+│ # - line, ring, mesh, full topologies
 │
-├── /utils
-│ └── params.m # General project parameters (N, Q, R, etc.)
+├── /utils/
+│ └── params.m # General parameters: N, c, Q, R, topology, noise, simulation time ecc...
 │
-├── main.m # Main script: topology + simulation config
+├── /simulation/
+│ ├── Local.slx # Simulink model using local observers (output-based)
+│ └── Neighborhood.slx # Simulink model using cooperative observers (distributed consensus)
+│
+├── /analysis/ # Numerical results, plots, performance comparisons (included separately)
 
 
 ---
 
-## 🛠️ How to Use
+## 🧪 How to Run
 
-1. Open `params.m`, configure parameters:
-   - Topology (`p.topology_type`)
-   - Reference type (`p.scelta_riferimento`)
-   - Noise parameters (`noise_sensitivity`, `agent_noise_sensitivity_vector`)
-2. Run `main.m`
-3. Open either `Local.slx` or `Neighborhood.slx`
-4. Simulate and observe results
+1. Open `params.m` and configure:
+   - `topology_type` → `'line' | 'ring' | 'mesh' | 'full'`
+   - `scelta_riferimento` → `'step' | 'ramp' | 'sin'`
+   - Noise: `noise_sensitivity`, `agent_noise_sensitivity_vector`
+
+2. Run `main.m` to load parameters and generate the network.
+
+3. Open one of the Simulink models:
+   - `Local.slx` → decentralized observer design
+   - `Neighborhood.slx` → distributed estimation with neighbor cooperation
+
+4. Simulate and analyze the system behavior.
+5. Check the `/analysis/` folder for numerical results and performance plots.
 
 ---
 
@@ -70,4 +79,16 @@ Simulations can be run with or without noise:
 - **Leader noise**: Gaussian noise added to leader output (`η₀`)  
 - **Agent noise**: Individually configurable per agent (vector of sensitivities)  
 
+---
+
+## 📊 Analysis
+
+Results are stored in `/analysis` and include:
+
+- Time responses (positions, errors)
+- Disagreement error evolution
+- Effects of noise, topology and reference type
+- Comparison between Local and Neighborhood observers
+
+---
 
