@@ -1,4 +1,4 @@
-Local Line Step:
+Neighborhood Line Step:
 c = minimum to converge line = 0.5
 R = 1
 Q = I
